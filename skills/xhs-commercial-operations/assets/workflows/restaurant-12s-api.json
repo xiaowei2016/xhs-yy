@@ -1,0 +1,165 @@
+{
+  "1": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "xhs_meal_rim_v3.png"
+    }
+  },
+  "2": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+      "weight_dtype": "default"
+    }
+  },
+  "3": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+      "type": "minimax",
+      "device": "default"
+    }
+  },
+  "4": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "minimax_h3_video_vae_fp16.safetensors"
+    }
+  },
+  "5": {
+    "class_type": "MiniMaxH3ImageToVideo",
+    "inputs": {
+      "clip": [
+        "3",
+        0
+      ],
+      "vae": [
+        "4",
+        0
+      ],
+      "prompt": "Natural handheld smartphone restaurant footage. One uninterrupted gentle camera move around a meal tray on a light wooden table in a commercial Chinese small-dish restaurant. Green upholstered commercial chairs, soft window light, ordinary realistic restaurant textures. Start exactly from the provided image. Four distinct dishes remain unchanged: green pepper pork, green beans, egg custard and braised eggplant. All four smooth white LOW melamine outer shells keep the exact shape and dimensions in the first frame. Thin rounded white lips, stainless inserts fully fitted INSIDE below the white lip, no protruding steel collars, no broad thick white ledges. Bowl geometry, count, material, colors, steel-to-shell fit and dishes must remain rigid and consistent throughout. The food is motionless, no serving or utensil actions. Camera makes a very subtle slow 5 percent push in and gentle side drift, never a dramatic orbit. No scene cuts, no morphing, no extra bowls, no changing food, no diners or fake queues. The complete meal and restaurant style are the story. No subtitles, no typography, no watermarks, no AI words, no brand or phone names. Audio: quiet natural restaurant room tone only, no music, no voice.",
+      "width": 480,
+      "height": 640,
+      "length": 294,
+      "first_frame": [
+        "1",
+        0
+      ]
+    }
+  },
+  "6": {
+    "class_type": "LoraLoaderModelOnly",
+    "inputs": {
+      "model": [
+        "2",
+        0
+      ],
+      "lora_name": "minimax_h3_fl2v_turbo_8step_v1.0_comfyui_bf16.safetensors",
+      "strength_model": 1.0
+    }
+  },
+  "7": {
+    "class_type": "BasicGuider",
+    "inputs": {
+      "model": [
+        "6",
+        0
+      ],
+      "conditioning": [
+        "5",
+        0
+      ]
+    }
+  },
+  "8": {
+    "class_type": "RandomNoise",
+    "inputs": {
+      "noise_seed": 2026093009
+    }
+  },
+  "9": {
+    "class_type": "KSamplerSelect",
+    "inputs": {
+      "sampler_name": "res_multistep"
+    }
+  },
+  "10": {
+    "class_type": "BasicScheduler",
+    "inputs": {
+      "model": [
+        "6",
+        0
+      ],
+      "scheduler": "simple",
+      "steps": 8,
+      "denoise": 1.0
+    }
+  },
+  "11": {
+    "class_type": "SamplerCustomAdvanced",
+    "inputs": {
+      "noise": [
+        "8",
+        0
+      ],
+      "guider": [
+        "7",
+        0
+      ],
+      "sampler": [
+        "9",
+        0
+      ],
+      "sigmas": [
+        "10",
+        0
+      ],
+      "latent_image": [
+        "5",
+        1
+      ]
+    }
+  },
+  "12": {
+    "class_type": "VAEDecodeTiled",
+    "inputs": {
+      "samples": [
+        "11",
+        0
+      ],
+      "vae": [
+        "4",
+        0
+      ],
+      "tile_size": 256,
+      "overlap": 64,
+      "temporal_size": 16,
+      "temporal_overlap": 4
+    }
+  },
+  "13": {
+    "class_type": "CreateVideo",
+    "inputs": {
+      "images": [
+        "12",
+        0
+      ],
+      "fps": 24.0,
+      "bit_depth": 8,
+      "color_space": "sRGB",
+      "codec": "h264"
+    }
+  },
+  "14": {
+    "class_type": "SaveVideo",
+    "inputs": {
+      "video": [
+        "13",
+        0
+      ],
+      "filename_prefix": "xhs_20260930/restaurant_meal_v3",
+      "format": "mp4",
+      "format.codec": "auto"
+    }
+  }
+}
